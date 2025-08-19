@@ -3,7 +3,7 @@
 ##########################
 
 # prometheus server address and port
-PROM_SERVER = "http://vigilant2:8480"
+PROM_SERVER = "http://qmon1:9090"
 
 # number of seconds between measurements
 SAMPLING_PERIOD = 30
@@ -27,20 +27,13 @@ MAX_JOBNAME_LEN = 64
 
 # default CPU memory per core in bytes for each cluster
 # if unsure then use memory per node divided by cores per node
-DEFAULT_MEM_PER_CORE = {"adroit":3355443200,
-                        "della":4194304000,
-                        "stellar":7864320000,
-                        "tiger":4294967296,
-                        "traverse":7812500000}
+DEFAULT_MEM_PER_CORE = {"cluster":3355443200}
+#DEFAULT_MEM_PER_CORE = {"quest":3355443200}
 
 # number of CPU-cores per node for each cluster
 # this will eventually be replaced with explicit values for each node
-CORES_PER_NODE = {"adroit":32,
-                  "della":28,
-                  "stellar":96,
-                  "tiger":40,
-                  "traverse":32}
-
+CORES_PER_NODE = {"cluster":32}
+# CORES_PER_NODE = {"quest":52}
 
 #########################################################################################
 ##                               C U S T O M    N O T E S                              ##
@@ -54,12 +47,11 @@ NOTES = []
 condition = 'self.js.gpus and (self.js.diff > c.MIN_RUNTIME_SECONDS) and num_unused_gpus > 0 ' \
             'and self.js.gpus == 1'
 note = ("This job did not use the GPU. Please resolve this " \
-        "before running additional jobs. Wasting " \
-        "resources prevents other users from getting their work done " \
-        "and it causes your subsequent jobs to have a lower priority. " \
-        "Is the code GPU-enabled? " \
-        "Please consult the documentation for the software. For more info:",
-        "https://researchcomputing.princeton.edu/support/knowledge-base/gpu-computing")
+        "before running additional jobs. Wasting compute" \
+        "resources prevents the jobs of other users from running " \
+        "and causes your subsequent jobs to have a lower scheduling priority. " \
+        "Please consult our online documentation (linked below) " \
+	"and the documentation for the software you are using.")
 style = "bold-red"
 NOTES.append((condition, note, style))
 
@@ -67,23 +59,23 @@ NOTES.append((condition, note, style))
 condition = 'self.js.gpus and (self.js.diff > c.MIN_RUNTIME_SECONDS) and num_unused_gpus > 0 ' \
             'and self.js.gpus > 1'
 note = ('f"This job did not use {num_unused_gpus} of the {self.js.gpus} allocated GPUs. "' \
-        '"Please resolve this before running additional jobs. "' \
-        '"Wasting resources prevents other users from getting their work done "' \
-        '"and it causes your subsequent jobs to have a lower priority. Is the "' \
-        '"code capable of using multiple GPUs? Please consult the documentation for "' \
-        '"the software. For more info:"',
-        "https://researchcomputing.princeton.edu/support/knowledge-base/gpu-computing")
+        "Please resolve this before running additional jobs. Wasting compute" \
+        "resources prevents the jobs of other users from running " \
+        "and causes your subsequent jobs to have a lower scheduling priority. " \
+        "Please consult our online documentation (linked below) " \
+	"and the documentation for the software you are using.")
 style = "bold-red"
 NOTES.append((condition, note, style))
 
 # low GPU utilization (ondemand and salloc)
+## NOTE: add srun to this?
 condition = '(not zero_gpu) and self.js.gpus and (self.js.gpu_utilization <= c.GPU_UTIL_RED) ' \
             'and interactive_job and (self.js.diff / SECONDS_PER_HOUR > 12)'
 note = ('f"The overall GPU utilization of this job is only {round(self.js.gpu_utilization)}%. "' \
-        'f"This value is low compared to the cluster mean value of 50%. Please "' \
+        'f"This value is low compared to the desired utilization range of 70% or above. Please "' \
         'f"do not create \"salloc\" or OnDemand sessions for more than 12 hours unless you "' \
-        'f"plan to work intensively during the entire period. For more info:"',
-        "https://researchcomputing.princeton.edu/support/knowledge-base/gpu-computing#util")
+        'f"plan to work intensively during the entire period."'
+        "Please consult our online documentation (linked below) for more information.")
 style = "bold-red"
 NOTES.append((condition, note, style))
 
@@ -91,9 +83,10 @@ NOTES.append((condition, note, style))
 condition = '(not zero_gpu) and self.js.gpus and (self.js.gpu_utilization <= c.GPU_UTIL_RED) ' \
             'and (not interactive_job)'
 note = ('f"The overall GPU utilization of this job is only {round(self.js.gpu_utilization)}%. "' \
-        '"This value is low compared to the cluster mean value of 50%. Please "' \
-        '"investigate the reason for the low utilization. For more info:"',
-        "https://researchcomputing.princeton.edu/support/knowledge-base/gpu-computing#util")
+        '"This value is low compared to the desired utilization range of 70% or above. Please "' \
+        '"investigate the reason for the low utilization."' \
+	"Please consult our online documentation (linked below)" \
+	"and the documentation for the software you are using.")
 style = "bold-red"
 NOTES.append((condition, note, style))
 
@@ -101,10 +94,10 @@ NOTES.append((condition, note, style))
 condition = '(not zero_cpu) and (not self.js.gpus) and (self.js.cpu_efficiency <= c.CPU_UTIL_BLACK) ' \
             'and (self.js.cpu_efficiency > c.CPU_UTIL_RED) and int(self.js.ncpus) > 1'
 note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
-        'f"is{somewhat}low compared to the target range of "' \
-        'f"90% and above. Please investigate the reason for the low efficiency. "' \
-        '"For instance, have you conducted a scaling analysis? For more info:"',
-        "https://researchcomputing.princeton.edu/get-started/cpu-utilization")
+        'f"is{somewhat}low compared to the desired utilization range of "' \
+        'f"70% and above. Please investigate the reason for the low efficiency - consider "' \
+        "doing a scaling study. Please consult our online documentation (linked below)" \
+	"and the documentation for the software you are using.")
 style = "normal"
 NOTES.append((condition, note, style))
 
@@ -112,10 +105,10 @@ NOTES.append((condition, note, style))
 condition = '(not zero_cpu) and (not self.js.gpus) and (self.js.cpu_efficiency < c.CPU_UTIL_RED) ' \
             'and (int(self.js.ncpus) > 1)'
 note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
-        'f"is{somewhat}low compared to the target range of "' \
-        'f"90% and above. Please investigate the reason for the low efficiency. "' \
-        '"For instance, have you conducted a scaling analysis? For more info:"',
-        "https://researchcomputing.princeton.edu/get-started/cpu-utilization")
+        'f"is{somewhat}low compared to the desired utilization range of "' \
+        'f"70% and above. Please investigate the reason for the low efficiency - consider "' \
+        "doing a scaling study. Please consult our online documentation (linked below)" \
+	"and the documentation for the software you are using.")
 style = "bold-red"
 NOTES.append((condition, note, style))
 
@@ -123,10 +116,10 @@ NOTES.append((condition, note, style))
 condition = '(not zero_cpu) and (not self.js.gpus) and (self.js.cpu_efficiency <= c.CPU_UTIL_BLACK) ' \
             'and (self.js.cpu_efficiency > c.CPU_UTIL_RED) and int(self.js.ncpus) == 1'
 note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
-        'f"is{somewhat}low compared to the target range of "' \
-        'f"90% and above. Please investigate the reason for the low efficiency. "' \
-        '"For more info:"',
-        "https://researchcomputing.princeton.edu/get-started/cpu-utilization")
+        'f"is{somewhat}low compared to the desired utilization range of "' \
+        'f"70% and above. Please investigate the reason for the low efficiency. "' \
+        "Please consult our online documentation (linked below)" \
+	"and the documentation for the software you are using.")
 style = "normal"
 NOTES.append((condition, note, style))
 
@@ -134,29 +127,30 @@ NOTES.append((condition, note, style))
 condition = '(not zero_cpu) and (not self.js.gpus) and (self.js.cpu_efficiency < c.CPU_UTIL_RED) ' \
             'and (int(self.js.ncpus) == 1)'
 note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
-        'f"is{somewhat}low compared to the target range of "' \
-        'f"90% and above. Please investigate the reason for the low efficiency. "' \
-        '"For more info:"',
-        "https://researchcomputing.princeton.edu/get-started/cpu-utilization")
+        'f"is{somewhat}low compared to the desired utilization range of "' \
+        'f"70% and above. Please investigate the reason for the low efficiency. "' \
+        "Please consult our online documentation (linked below)" \
+	"and the documentation for the software you are using.")
 style = "bold-red"
 NOTES.append((condition, note, style))
 
 # out of memory
 condition = 'self.js.state == "OUT_OF_MEMORY"'
 note = ("This job failed because it needed more CPU memory than the amount that " \
-        "was requested. The solution is to resubmit the job while " \
-        "requesting more CPU memory by " \
-        "modifying the --mem-per-cpu or --mem Slurm directive. For more info: ",
-        "https://researchcomputing.princeton.edu/support/knowledge-base/memory")
+        "was requested. If there are no other problems, the solution is to resubmit" \
+        "the job with requesting more CPU memory by " \
+        "modifying the --mem-per-cpu or --mem Slurm directive.",
+        "Please consult our online documentation (linked below) for more information.")
 style = "bold-red"
 NOTES.append((condition, note, style))
 
 # timeout
 condition = 'self.js.state == "TIMEOUT"'
 note = ("This job failed because it exceeded the time limit. If there are no " \
-        "other problems then the solution is to increase the value of the " \
-        "--time Slurm directive and resubmit the job. For more info:",
-        "https://researchcomputing.princeton.edu/support/knowledge-base/slurm")
+        "other problems, the solution is to increase the value of the " \
+        "--time Slurm directive and resubmit the job. You may also need to submit" \
+        "your job to a different Slurm partition (such as short, normal, long).",
+        "Please consult our online documentation (linked below) for more information.")
 style = "bold-red"
 NOTES.append((condition, note, style))
 
@@ -165,10 +159,11 @@ condition = 'self.js.time_eff_violation and self.js.time_efficiency <= c.TIME_EF
 note = ('f"This job only needed {self.js.time_efficiency}% of the requested time "' \
         'f"which was {self.human_seconds(SECONDS_PER_MINUTE * self.js.timelimitraw)}. "' \
         '"For future jobs, please request less time by modifying "' \
-        '"the --time Slurm directive. This will "' \
-        '"lower your queue times and allow the Slurm job scheduler to work more "' \
-        '"effectively for all users. For more info:"',
-        "https://researchcomputing.princeton.edu/support/knowledge-base/slurm")
+        '"the --time Slurm directive. You may also need to submit" \
+        "your job to a different Slurm partition (such as short, normal, long). This"' \
+        '"will lower your queue wait times and allow the Slurm job scheduler to "' \
+        '"work more effectively for all users. "',
+        "Please consult our online documentation (linked below) for more information.")
 style = "bold-red"
 NOTES.append((condition, note, style))
 
@@ -177,10 +172,11 @@ condition = 'self.js.time_eff_violation and self.js.time_efficiency > c.TIME_EFF
 note = ('f"This job only needed {self.js.time_efficiency}% of the requested time "' \
         'f"which was {self.human_seconds(SECONDS_PER_MINUTE * self.js.timelimitraw)}. "' \
         '"For future jobs, please request less time by modifying "' \
-        '"the --time Slurm directive. This will "' \
-        '"lower your queue times and allow the Slurm job scheduler to work more "' \
-        '"effectively for all users. For more info:"',
-        "https://researchcomputing.princeton.edu/support/knowledge-base/slurm")
+        '"the --time Slurm directive. You may also need to submit" \
+        "your job to a different Slurm partition (such as short, normal, long). This"' \
+        '"will lower your queue wait times and allow the Slurm job scheduler to "' \
+        '"work more effectively for all users. "',
+        "Please consult our online documentation (linked below) for more information.")
 style = "normal"
 NOTES.append((condition, note, style))
 
@@ -188,8 +184,8 @@ NOTES.append((condition, note, style))
 condition = '(not zero_gpu) and self.js.gpus and (self.js.gpu_utilization < c.GPU_UTIL_BLACK) and ' \
             '(self.js.gpu_utilization > c.GPU_UTIL_RED) and (self.js.diff > c.MIN_RUNTIME_SECONDS)'
 note = ('f"The overall GPU utilization of this job is {round(self.js.gpu_utilization)}%. "' \
-        '"This value is somewhat low compared to the cluster mean value of 50%. For more info:"',
-        'https://researchcomputing.princeton.edu/support/knowledge-base/gpu-computing#util')
+        '"This value is somewhat low compared to the desired utilization range of 70% and above."',
+        "Please consult our online documentation (linked below) for more information.")
 style = "normal"
 NOTES.append((condition, note, style))
 
@@ -204,9 +200,9 @@ note = ('f"This job {opening} of the {self.cpu_memory_formatted(with_label=False
         '"For future jobs, please allocate less memory by using a Slurm directive such "' \
         'f"as --mem-per-cpu={self.rounded_memory_with_safety(gb_per_core_used)}G or "' \
         'f"--mem={self.rounded_memory_with_safety(gb_per_node_used)}G. "' \
-        '"This will reduce your queue times and make the resources available to "' \
-        '"other users. For more info:"',
-        "https://researchcomputing.princeton.edu/support/knowledge-base/memory")
+        '"This will lower your queue wait times and allow the Slurm job scheduler to "' \
+        '"work more effectively for all users. "',
+        "Please consult our online documentation (linked below) for more information.")
 style = "normal"
 NOTES.append((condition, note, style))
 
@@ -218,35 +214,16 @@ note = ('f"The CPU utilization of this job ({self.js.cpu_efficiency}%) is{approx
         'f"(1/{self.js.ncpus}={round(eff_if_serial)}%). This suggests that you may be "' \
         '"running a code that can only use 1 CPU-core. If this is true then "' \
         '"allocating more than 1 CPU-core is wasteful. Please consult the "' \
-        '"documentation for the software to see if it is parallelized. For more info:"',
-        "https://researchcomputing.princeton.edu/support/knowledge-base/parallel-code")
+        '"documentation for the software you are using to see if it can run in parallel."',
+        "You may also consult our online documentation (linked below) for more information.")
 style = "normal"
 NOTES.append((condition, note, style))
 
-# job ran in the test queue
-condition = '"test" in self.js.qos or "debug" in self.js.qos'
-note = ('f"This job ran in the {self.js.qos} QOS. Each user can only run a small number of "' \
-        '"jobs simultaneously in this QOS. For more info:"',
-        'https://researchcomputing.princeton.edu/support/knowledge-base/job-priority#test-queue')
-style = "normal"
-NOTES.append((condition, note, style))
-
-# more details for della
-condition = '(self.js.cluster == "della")'
-note = ("For additional job metrics including metrics plotted against time:",
-        "https://mydella.princeton.edu/pun/sys/jobstats  (VPN required off-campus)")
-style = "normal"
-NOTES.append((condition, note, style))
-
-# more details for adroit
-condition = '(self.js.cluster == "adroit")'
-note = ("For additional job metrics including metrics plotted against time:",
-        "https://myadroit.princeton.edu/pun/sys/jobstats  (VPN required off-campus)")
-style = "normal"
-NOTES.append((condition, note, style))
+## NOTE: Deleted some stuff about different clusters/QOSs that we dont have 
 
 # example of a simple note that is always displayed
 condition = 'True'
-note = "Have a nice day!"
+note = ("Northwestern Research Computing and Data Services (RCDS) documentation:",
+        "https://rcdsdocs.it.northwestern.edu/")
 style = "normal"
 NOTES.append((condition, note, style))
