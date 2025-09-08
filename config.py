@@ -27,13 +27,13 @@ MAX_JOBNAME_LEN = 64
 
 # default CPU memory per core in bytes for each cluster
 # if unsure then use memory per node divided by cores per node
-DEFAULT_MEM_PER_CORE = {"cluster":3355443200}
-#DEFAULT_MEM_PER_CORE = {"quest":3355443200}
+#DEFAULT_MEM_PER_CORE = {"cluster":3355443200}
+DEFAULT_MEM_PER_CORE = {"quest":3355443200}
 
 # number of CPU-cores per node for each cluster
 # this will eventually be replaced with explicit values for each node
-CORES_PER_NODE = {"cluster":32}
-# CORES_PER_NODE = {"quest":52}
+# CORES_PER_NODE = {"cluster":32}
+CORES_PER_NODE = {"quest":52}
 
 #########################################################################################
 ##                               C U S T O M    N O T E S                              ##
