@@ -215,6 +215,7 @@ class BaseFormatter(ABC):
         gb_per_core_used = total_used / total_cores / 1024**3 if total_cores != 0 else 0
         gb_per_node_used = total_used / int(self.js.nnodes) / 1024**3 if int(self.js.nnodes) != 0 else 0
         # zero GPU/CPU utilization
+        ## HERE probably -- gpu_util__node_util_index
         if self.js.gpus:
             num_unused_gpus = sum([util == 0 for _, util, _ in self.js.gpu_util__node_util_index])
         else:
