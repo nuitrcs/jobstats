@@ -388,11 +388,16 @@ class Jobstats:
                     self.get_data('gpu_used_memory', "max_over_time(nvidia_gpu_memory_used_bytes{{cluster='{cluster}',jobid='{jobid}'}}[{diff}s:])")
                 else:
                     self.get_data('gpu_used_memory', "max_over_time((nvidia_gpu_memory_used_bytes{{cluster='{cluster}'}} and nvidia_gpu_jobId == {jobid})[{diff}s:])")
-            if not args or "gpu_utilization" in args:
+            if not args or "gpu_utilization_avg" in args:
                 if c.GPU_EXPORTER_JOBID:
-                    self.get_data('gpu_utilization', "avg_over_time(nvidia_gpu_duty_cycle{{cluster='{cluster}',jobid='{jobid}'}}[{diff}s:])")
+                    self.get_data('gpu_utilization_avg', "avg_over_time(nvidia_gpu_duty_cycle{{cluster='{cluster}',jobid='{jobid}'}}[{diff}s:])")
                 else:
-                    self.get_data('gpu_utilization', "avg_over_time((nvidia_gpu_duty_cycle{{cluster='{cluster}'}} and nvidia_gpu_jobId == {jobid})[{diff}s:])")
+                    self.get_data('gpu_utilization_avg', "avg_over_time((nvidia_gpu_duty_cycle{{cluster='{cluster}'}} and nvidia_gpu_jobId == {jobid})[{diff}s:])")
+            if not args or "gpu_utilization_max" in args:
+                if c.GPU_EXPORTER_JOBID:
+                    self.get_data('gpu_utilization_max', "max_over_time(nvidia_gpu_duty_cycle{{cluster='{cluster}',jobid='{jobid}'}}[{diff}s:])")
+                else:
+                    self.get_data('gpu_utilization_max', "max_over_time((nvidia_gpu_duty_cycle{{cluster='{cluster}'}} and nvidia_gpu_jobId == {jobid})[{diff}s:])")
 
     def parse_stats(self):
         sp_node = self.sp_node
@@ -475,14 +480,15 @@ class Jobstats:
             self.gpu_util__node_util_index = []
             for n in sp_node:
                 d = sp_node[n]
-                if 'gpu_utilization' in d:
-                    gpus = list(d['gpu_utilization'].keys())
+                if 'gpu_utilization_avg' in d:
+                    gpus = list(d['gpu_utilization_avg'].keys())
                     gpus.sort()
                     for g in gpus:
-                        util = d['gpu_utilization'][g]
-                        overall += util
+                        util_avg = d['gpu_utilization_avg'][g]
+                        util_max = d['gpu_utilization_max'][g]
+                        overall += util_avg
                         overall_gpu_count += 1
-                        self.gpu_util__node_util_index.append((n, util, g))
+                        self.gpu_util__node_util_index.append((n, util_avg, util_max, g))
                 else:
                     if self.is_mig_job():
                         self.gpu_util__node_util_index.append((n, None, "#"))
