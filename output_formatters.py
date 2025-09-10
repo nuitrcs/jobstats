@@ -217,7 +217,7 @@ class BaseFormatter(ABC):
         # zero GPU/CPU utilization
         ## HERE probably -- gpu_util__node_util_index
         if self.js.gpus:
-            num_unused_gpus = sum([util == 0 for _, util, _ in self.js.gpu_util__node_util_index])
+            num_unused_gpus = sum([util == 0 for _, util, _, _ in self.js.gpu_util__node_util_index])
         else:
             num_unused_gpus = 0
         zero_gpu = False  # unused
@@ -427,14 +427,24 @@ class ClassicOutput(BaseFormatter):
             report += f"({self.human_bytes(total_used/total_cores)}/{hb_total} per core of {total_cores})\n"
         # GPUs
         if self.js.gpus:
-            # GPU utilization
-            report += f"\n{gutter}GPU utilization per node\n"
+            # GPU utilization average
+            report += f"\n{gutter}Average GPU utilization per node\n"
             if self.js.gpu_util_error_code == 0:
-                for node, util, gpu_index in self.js.gpu_util__node_util_index:
+                for node, util_avg, _, gpu_index in self.js.gpu_util__node_util_index:
                     msg = ""
-                    if util == 0:
+                    if util_avg == 0:
                         msg = f" {self.txt_bold}{self.txt_red}<-- GPU was not used{self.txt_normal}"
-                    report += f"{gutter}    {node} (GPU {gpu_index}): {util}%{msg}\n"
+                    report += f"{gutter}    {node} (GPU {gpu_index}): {util_avg}%{msg}\n"
+            else:
+                 report += f"{gutter}    An error was encountered ({self.js.gpu_util_error_code})\n"
+            # GPU utilization max 
+            report += f"\n{gutter}Maximum GPU utilization per node\n"
+            if self.js.gpu_util_error_code == 0:
+                for node, _, util_max, gpu_index in self.js.gpu_util__node_util_index:
+                    msg = ""
+                    if util_max == 0:
+                        msg = f" {self.txt_bold}{self.txt_red}<-- GPU was not used{self.txt_normal}"
+                    report += f"{gutter}    {node} (GPU {gpu_index}): {util_max}%{msg}\n"
             else:
                  report += f"{gutter}    An error was encountered ({self.js.gpu_util_error_code})\n"
             # GPU memory usage
