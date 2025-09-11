@@ -171,11 +171,11 @@ condition = 'self.js.time_eff_violation and self.js.time_efficiency <= c.TIME_EF
 note = ('f"This job only needed {self.js.time_efficiency}% of the requested time "' \
         'f"which was {self.human_seconds(SECONDS_PER_MINUTE * self.js.timelimitraw)}. "' \
         '"For future jobs, please request less time by modifying "' \
-        '"the --time Slurm directive. You may also need to submit" \
-        "your job to a different Slurm partition (such as short, normal, long). This"' \
+        '"the --time Slurm directive. You may also need to submit"' \
+        '"your job to a different Slurm partition (such as short, normal, long). This"' \
         '"will lower your queue wait times and allow the Slurm job scheduler to "' \
         '"work more effectively for all users. Please consult our "' \
-        "online documentation (linked below) for more information.")
+        '"online documentation (linked below) for more information."')
 style = "bold-red"
 NOTES.append((condition, note, style))
 
@@ -184,8 +184,8 @@ condition = 'self.js.time_eff_violation and self.js.time_efficiency > c.TIME_EFF
 note = ('f"This job only needed {self.js.time_efficiency}% of the requested time "' \
         'f"which was {self.human_seconds(SECONDS_PER_MINUTE * self.js.timelimitraw)}. "' \
         '"For future jobs, please request less time by modifying "' \
-        '"the --time Slurm directive. You may also need to submit" \
-        "your job to a different Slurm partition (such as short, normal, long). This"' \
+        '"the --time Slurm directive. You may also need to submit"' \
+        '"your job to a different Slurm partition (such as short, normal, long). This"' \
         '"will lower your queue wait times and allow the Slurm job scheduler to "' \
         '"work more effectively for all users. Please consult our "' \
         "online documentation (linked below) for more information.")
