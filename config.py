@@ -59,11 +59,11 @@ NOTES.append((condition, note, style))
 condition = 'self.js.gpus and (self.js.diff > c.MIN_RUNTIME_SECONDS) and num_unused_gpus > 0 ' \
             'and self.js.gpus > 1'
 note = ('f"This job did not use {num_unused_gpus} of the {self.js.gpus} allocated GPUs. "' \
-        "Please resolve this before running additional jobs. Underutilizing compute" \
-        "resources prevents the jobs of other users from running " \
-        "and causes your subsequent jobs to have a lower scheduling priority. " \
-        "Please consult our online documentation (linked below) " \
-	"and the documentation for the software you are using.")
+        '"Please resolve this before running additional jobs. Underutilizing compute"' \
+        '"resources prevents the jobs of other users from running "' \
+        '"and causes your subsequent jobs to have a lower scheduling priority. "' \
+        '"Please consult our online documentation (linked below) "' \
+	'"and the documentation for the software you are using."')
 style = "bold-red"
 NOTES.append((condition, note, style))
 
@@ -108,8 +108,8 @@ condition = '(not zero_cpu) and (not self.js.gpus) and (self.js.cpu_efficiency <
 note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
         'f"is{somewhat}low compared to the desired utilization range of "' \
         'f"70% and above. Please investigate the reason for the low efficiency and consider "' \
-        "doing a scaling study. Consult our online documentation (linked below)" \
-	"and the documentation for the software you are using.")
+        '"doing a scaling study. Consult our online documentation (linked below)"' \
+	'"and the documentation for the software you are using."')
 style = "normal"
 NOTES.append((condition, note, style))
 
@@ -119,8 +119,8 @@ condition = '(not zero_cpu) and (not self.js.gpus) and (self.js.cpu_efficiency <
 note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
         'f"is{somewhat}low compared to the desired utilization range of "' \
         'f"70% and above. Please investigate the reason for the low efficiency and consider "' \
-        "doing a scaling study. Consult our online documentation (linked below)" \
-	"and the documentation for the software you are using.")
+        '"doing a scaling study. Consult our online documentation (linked below)"' \
+	'"and the documentation for the software you are using."')
 style = "bold-red"
 NOTES.append((condition, note, style))
 
@@ -130,8 +130,8 @@ condition = '(not zero_cpu) and (not self.js.gpus) and (self.js.cpu_efficiency <
 note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
         'f"is{somewhat}low compared to the desired utilization range of "' \
         'f"70% and above. Please investigate the reason for the low efficiency. "' \
-        "Consult our online documentation (linked below)" \
-	"and the documentation for the software you are using.")
+        '"Consult our online documentation (linked below)"' \
+	'"and the documentation for the software you are using."')
 style = "normal"
 NOTES.append((condition, note, style))
 
@@ -141,8 +141,8 @@ condition = '(not zero_cpu) and (not self.js.gpus) and (self.js.cpu_efficiency <
 note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
         'f"is{somewhat}low compared to the desired utilization range of "' \
         'f"70% and above. Please investigate the reason for the low efficiency. "' \
-        "Consult our online documentation (linked below)" \
-	"and the documentation for the software you are using.")
+        '"Consult our online documentation (linked below)"' \
+	'"and the documentation for the software you are using."')
 style = "bold-red"
 NOTES.append((condition, note, style))
 
@@ -171,11 +171,11 @@ condition = 'self.js.time_eff_violation and self.js.time_efficiency <= c.TIME_EF
 note = ('f"This job only needed {self.js.time_efficiency}% of the requested time "' \
         'f"which was {self.human_seconds(SECONDS_PER_MINUTE * self.js.timelimitraw)}. "' \
         '"For future jobs, please request less time by modifying "' \
-        '"the --time Slurm directive. You may also need to submit" \
-        "your job to a different Slurm partition (such as short, normal, long). This"' \
+        '"the --time Slurm directive. You may also need to submit"' \
+        '"your job to a different Slurm partition (such as short, normal, long). This"' \
         '"will lower your queue wait times and allow the Slurm job scheduler to "' \
         '"work more effectively for all users. Please consult our "' \
-        "online documentation (linked below) for more information.")
+        '"online documentation (linked below) for more information."')
 style = "bold-red"
 NOTES.append((condition, note, style))
 
@@ -184,11 +184,11 @@ condition = 'self.js.time_eff_violation and self.js.time_efficiency > c.TIME_EFF
 note = ('f"This job only needed {self.js.time_efficiency}% of the requested time "' \
         'f"which was {self.human_seconds(SECONDS_PER_MINUTE * self.js.timelimitraw)}. "' \
         '"For future jobs, please request less time by modifying "' \
-        '"the --time Slurm directive. You may also need to submit" \
-        "your job to a different Slurm partition (such as short, normal, long). This"' \
+        '"the --time Slurm directive. You may also need to submit"' \
+        '"your job to a different Slurm partition (such as short, normal, long). This"' \
         '"will lower your queue wait times and allow the Slurm job scheduler to "' \
         '"work more effectively for all users. Please consult our "' \
-        "online documentation (linked below) for more information.")
+        '"online documentation (linked below) for more information."')
 style = "normal"
 NOTES.append((condition, note, style))
 
@@ -205,7 +205,7 @@ note = ('f"This job {opening} of the {self.cpu_memory_formatted(with_label=False
         'f"--mem={self.rounded_memory_with_safety(gb_per_node_used)}G. "' \
         '"This will lower your queue wait times and allow the Slurm job scheduler to "' \
         '"work more effectively for all users. "' \
-        "Please consult our online documentation (linked below) for more information.")
+        '"Please consult our online documentation (linked below) for more information."')
 style = "normal"
 NOTES.append((condition, note, style))
 
@@ -217,9 +217,9 @@ note = ('f"The CPU utilization of this job ({self.js.cpu_efficiency}%) is{approx
         'f"(1/{self.js.ncpus}={round(eff_if_serial)}%). This suggests that you may be "' \
         '"running a code that can only use 1 CPU-core. If this is true, "' \
         '"you should not allocate more than 1 CPU-core per job."' \
-        "Please consult our online documentation (linked below)" \
-	"and the documentation for the software you are using. Check to see if the " \
-	"software you are using has the capability to run in parallel.")
+        '"Please consult our online documentation (linked below)"' \
+	'"and the documentation for the software you are using. Check to see if the "' \
+	'"software you are using has the capability to run in parallel."')
 style = "normal"
 NOTES.append((condition, note, style))
 
