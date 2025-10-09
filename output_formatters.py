@@ -445,7 +445,7 @@ class ClassicOutput(BaseFormatter):
         else:
             report += f"{gutter}    An error was encountered ({self.js.cpu_util_error_code})\n"
         # CPU memory usage
-        report += f"\n{gutter}CPU memory usage per node - used/allocated\n"
+        report += f"\n{gutter}CPU memory usage per node - maximum used/allocated\n"
         for node, used, alloc, cores in self.js.cpu_mem__node_used_alloc_cores:
             hb_alloc = self.human_bytes(alloc).replace(".0GB", "GB")
             report += f"{gutter}    {node}: {self.human_bytes(used)}/{hb_alloc} "
