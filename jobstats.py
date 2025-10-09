@@ -272,7 +272,8 @@ class Jobstats:
         if self.gpus:
             self.get_data('gpu_total_memory', "max_over_time((nvidia_gpu_memory_total_bytes{cluster='%s'} and nvidia_gpu_jobId == %s)[%ds:])")
             self.get_data('gpu_used_memory', "max_over_time((nvidia_gpu_memory_used_bytes{cluster='%s'} and nvidia_gpu_jobId == %s)[%ds:])")
-            self.get_data('gpu_utilization', "avg_over_time((nvidia_gpu_duty_cycle{cluster='%s'} and nvidia_gpu_jobId == %s)[%ds:])")
+            self.get_data('gpu_utilization_avg', "avg_over_time((nvidia_gpu_duty_cycle{cluster='%s'} and nvidia_gpu_jobId == %s)[%ds:])")
+            self.get_data('gpu_utilization_max', "max_over_time((nvidia_gpu_duty_cycle{cluster='%s'} and nvidia_gpu_jobId == %s)[%ds:])")
 
 
     def parse_stats(self):
@@ -357,17 +358,18 @@ class Jobstats:
             self.gpu_util__node_util_index = []
             for n in sp_node:
                 d = sp_node[n]
-                if 'gpu_utilization' in d:
-                    gpus = list(d['gpu_utilization'].keys())
+                if 'gpu_utilization_avg' in d:
+                    gpus = list(d['gpu_utilization_avg'].keys())
                     gpus.sort()
                     for g in gpus:
-                        util = d['gpu_utilization'][g]
-                        overall += util
+                        util_avg = d['gpu_utilization_avg'][g]
+                        util_max = d['gpu_utilization_max'][g]
+                        overall += util_avg
                         overall_gpu_count += 1
-                        self.gpu_util__node_util_index.append((n, util, g))
+                        self.gpu_util__node_util_index.append((n, util_avg, util_max, g))
                 else:
                     self.gpu_util_error_code = 1
-                    self.gpu_util__node_util_index.append((n, None, None))
+                    self.gpu_util__node_util_index.append((n, None, None, None))
                     break
             self.gpu_util_total__util_gpus = (overall, overall_gpu_count)
 
