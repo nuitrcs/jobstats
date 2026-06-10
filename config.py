@@ -43,6 +43,12 @@ CORES_PER_NODE = {"quest":52}
 #########################################################################################
 NOTES = []
 
+######
+## JG June 2026 -- I am setting all of the conditions of these notes to 'False' until 
+## we verify them and confirm what we want our user messaging to be. 
+## The conditions are evaluated in the job_notes method in output_formatters
+######
+
 # zero GPU utilization (single GPU jobs)
 condition = 'self.js.gpus and (self.js.diff > c.MIN_RUNTIME_SECONDS) and num_unused_gpus > 0 ' \
             'and self.js.gpus == 1'
@@ -53,7 +59,8 @@ note = ("This job did not use the GPU. Please resolve this " \
         "Please consult our online documentation (linked below) " \
 	"and the documentation for the software you are using.")
 style = "bold-red"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 # zero GPU utilization (multi-GPU jobs)
 condition = 'self.js.gpus and (self.js.diff > c.MIN_RUNTIME_SECONDS) and num_unused_gpus > 0 ' \
@@ -65,7 +72,8 @@ note = ('f"This job did not use {num_unused_gpus} of the {self.js.gpus} allocate
         '"Please consult our online documentation (linked below) "' \
 	'"and the documentation for the software you are using."')
 style = "bold-red"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 # low GPU utilization (ondemand and salloc)
 ## NOTE: add srun to and change the logic of this?
@@ -80,7 +88,8 @@ note = ('f"The overall GPU utilization of this job is only {round(self.js.gpu_ut
         'f"plan to work intensively during the entire period. Consult our online documentation"' \
         '"(linked below) and the documentation for the software you are using."')
 style = "bold-red"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 # low GPU utilization (batch jobs)
 condition = '(not zero_gpu) and self.js.gpus and (self.js.gpu_utilization <= c.GPU_UTIL_RED) ' \
@@ -90,7 +99,8 @@ note = ('f"The overall GPU utilization of this job is only {round(self.js.gpu_ut
         '"Please investigate the reason for the low utilization. Consult our online documentation"' \
         '"(linked below) and the documentation for the software you are using."')
 style = "bold-red"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 # somewhat low GPU utilization
 condition = '(not zero_gpu) and self.js.gpus and (self.js.gpu_utilization < c.GPU_UTIL_BLACK) and ' \
@@ -100,7 +110,8 @@ note = ('f"The overall GPU utilization of this job is {round(self.js.gpu_utiliza
         '"Please investigate the reason for the low utilization. Consult our online documentation"' \
         '"(linked below) and the documentation for the software you are using."')
 style = "normal"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 # low CPU utilization (black, more than one core)
 condition = '(not zero_cpu) and (not self.js.gpus) and (self.js.cpu_efficiency <= c.CPU_UTIL_BLACK) ' \
@@ -111,7 +122,8 @@ note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
         '"doing a scaling study. Consult our online documentation (linked below)"' \
 	'"and the documentation for the software you are using."')
 style = "normal"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 # low CPU utilization (red, more than one core)
 condition = '(not zero_cpu) and (not self.js.gpus) and (self.js.cpu_efficiency < c.CPU_UTIL_RED) ' \
@@ -122,7 +134,8 @@ note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
         '"doing a scaling study. Consult our online documentation (linked below)"' \
 	'"and the documentation for the software you are using."')
 style = "bold-red"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 # low CPU utilization (black, serial job)
 condition = '(not zero_cpu) and (not self.js.gpus) and (self.js.cpu_efficiency <= c.CPU_UTIL_BLACK) ' \
@@ -133,7 +146,8 @@ note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
         '"Consult our online documentation (linked below)"' \
 	'"and the documentation for the software you are using."')
 style = "normal"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 # low CPU utilization (red, serial job)
 condition = '(not zero_cpu) and (not self.js.gpus) and (self.js.cpu_efficiency < c.CPU_UTIL_RED) ' \
@@ -144,7 +158,8 @@ note = ('f"The overall CPU utilization of this job is {ceff}%. This value "' \
         '"Consult our online documentation (linked below)"' \
 	'"and the documentation for the software you are using."')
 style = "bold-red"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 # out of memory
 condition = 'self.js.state == "OUT_OF_MEMORY"'
@@ -154,7 +169,8 @@ note = ("This job failed because it needed more CPU memory than the amount that 
         "modifying the --mem-per-cpu or --mem Slurm directive." \
         "Please consult our online documentation (linked below) for more information.")
 style = "bold-red"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 # timeout
 condition = 'self.js.state == "TIMEOUT"'
@@ -164,7 +180,8 @@ note = ("This job exited or failed because it exceeded the time limit. If there 
         "your job to a different Slurm partition (such as short, normal, long)." \
         "Please consult our online documentation (linked below) for more information.")
 style = "bold-red"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 # excessive run time limit (red)
 condition = 'self.js.time_eff_violation and self.js.time_efficiency <= c.TIME_EFFICIENCY_RED'
@@ -177,7 +194,8 @@ note = ('f"This job only needed {self.js.time_efficiency}% of the requested time
         '"work more effectively for all users. Please consult our "' \
         '"online documentation (linked below) for more information."')
 style = "bold-red"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 # excessive run time limit (black)
 condition = 'self.js.time_eff_violation and self.js.time_efficiency > c.TIME_EFFICIENCY_RED'
@@ -190,7 +208,8 @@ note = ('f"This job only needed {self.js.time_efficiency}% of the requested time
         '"work more effectively for all users. Please consult our "' \
         '"online documentation (linked below) for more information."')
 style = "normal"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 # excess CPU memory
 condition = '(not zero_gpu) and (not zero_cpu) and (self.js.cpu_memory_efficiency < c.MIN_MEMORY_USAGE) ' \
@@ -207,7 +226,8 @@ note = ('f"This job {opening} of the {self.cpu_memory_formatted(with_label=False
         '"work more effectively for all users. "' \
         '"Please consult our online documentation (linked below) for more information."')
 style = "normal"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 # serial jobs wasting multiple cpu-cores
 condition = '(self.js.nnodes == "1") and (int(self.js.ncpus) > 1) and (not self.js.gpus) and (serial_ratio > 0.85 ' \
@@ -221,13 +241,18 @@ note = ('f"The CPU utilization of this job ({self.js.cpu_efficiency}%) is{approx
 	'"and the documentation for the software you are using. Check to see if the "' \
 	'"software you are using has the capability to run in parallel."')
 style = "normal"
-NOTES.append((condition, note, style))
+# NOTES.append((condition, note, style))
+NOTES.append(('False', note, style))
 
 ## NOTE: Deleted some stuff about different clusters/QOSs that we dont have 
 
 # example of a simple note that is always displayed
 condition = 'True'
-note = ("Northwestern Research Computing and Data Services (RCDS) documentation:" \
-        "https://rcdsdocs.it.northwestern.edu/")
+note = ('Thank you for running jobstats! ' \
+	'This tool is in development by Northwestern Research Computing ' \
+	'and Data Services (RCDS) in collaboration with Princeton University. ' \
+	'For more information about jobstats and job efficiency on Quest, ' \
+	'please see our documentation site https://rcdsdocs.it.northwestern.edu/ ' \
+	'or email quest-help@northwestern.edu. ')
 style = "normal"
 NOTES.append((condition, note, style))
