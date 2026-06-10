@@ -367,6 +367,8 @@ class Jobstats:
 
     def get_job_stats(self, *args):
         # query CPU and Memory utilization data
+        ## JG June 2026 -- see issue: https://github.com/PrincetonUniversity/jobstats/issues/57
+        ## self.get_data('used_memory', "max_over_time(cgroup_memory_used_bytes{cluster='%s',jobid='%s',step='',task=''}[%ds])")
         if not args or "total_memory" in args:
             self.get_data('total_memory', "max_over_time(cgroup_memory_total_bytes{{cluster='{cluster}',jobid='{jobid}',step='',task=''}}[{diff}s])", True)
         if not args or "used_memory" in args:
