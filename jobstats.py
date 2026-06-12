@@ -372,7 +372,11 @@ class Jobstats:
         if not args or "total_memory" in args:
             self.get_data('total_memory', "max_over_time(cgroup_memory_total_bytes{{cluster='{cluster}',jobid='{jobid}',step='',task=''}}[{diff}s])", True)
         if not args or "used_memory" in args:
-            self.get_data('used_memory', "max_over_time(((cgroup_memory_rss_bytes{{cluster='{cluster}',jobid='{jobid}',step='',task=''}}+cgroup_memory_shmem_bytes{{cluster='{cluster}',jobid='{jobid}',step='',task=''}}) or 1*cgroup_memory_rss_bytes{{cluster='{cluster}',jobid='{jobid}',step='',task=''}})[{diff}s:])", True)
+            # self.get_data('used_memory', "max_over_time(((cgroup_memory_rss_bytes{{cluster='{cluster}',jobid='{jobid}',step='',task=''}}+cgroup_memory_shmem_bytes{{cluster='{cluster}',jobid='{jobid}',step='',task=''}}) or 1*cgroup_memory_rss_bytes{{cluster='{cluster}',jobid='{jobid}',step='',task=''}})[{diff}s:])", True)
+            ## testing
+            # self.get_data('used_memory', "max_over_time((cgroup_memory_rss_bytes{{cluster='{cluster}',jobid='{jobid}',step='',task=''}}+cgroup_memory_shmem_bytes{{cluster='{cluster}',jobid='{jobid}',step='',task=''}})[{diff}s:])", True)
+            ## more testing
+            self.get_data('used_memory', "max_over_time(cgroup_memory_shmem_bytes{{cluster='{cluster}',jobid='{jobid}',step='',task=''}}[{diff}s:])", True)
         if not args or "total_time" in args:
             self.get_data('total_time', "max_over_time(cgroup_cpu_total_seconds{{cluster='{cluster}',jobid='{jobid}',step='',task=''}}[{diff}s])", True)
         if not args or "cpus" in args:

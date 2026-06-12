@@ -9,7 +9,8 @@ PROM_RETENTION_DAYS = 15
 # Set to True if GPU stats have jobid label as opposed to using nvidia_gpu_jobId
 # This is available as of version 0.2.2 Sept 2025 in the repo
 # https://github.com/plazonic/nvidia_gpu_prometheus_exporter/
-GPU_EXPORTER_JOBID = True
+# GPU_EXPORTER_JOBID = True
+GPU_EXPORTER_JOBID = False
 
 # If using Slurm database then include the lines below with "enabled": False
 # If using MariaDB/MySQL then set "enabled": True
