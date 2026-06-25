@@ -26,7 +26,7 @@ EXTERNAL_DB_CONFIG = {
 #     "user": "jobstats",
 #     "password": "password",
 #     "config_file": "/path/to/jobstats-db.cnf",
-#     "mirror_to_admin_comment": False,  # also write JS1 payload to AdminComment via sacctmgr
+    "mirror_to_admin_comment": True,  # also write JS1 payload to AdminComment via sacctmgr
 }
 
 # number of seconds between measurements
