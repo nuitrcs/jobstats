@@ -264,7 +264,10 @@ class Jobstats:
     def get_job_stats(self):
         # query CPU and Memory utilization data
         self.get_data('total_memory', "max_over_time(cgroup_memory_total_bytes{cluster='%s',jobid='%s',step='',task=''}[%ds])")
-        self.get_data('used_memory', "max_over_time(cgroup_memory_rss_bytes{cluster='%s',jobid='%s',step='',task=''}[%ds])")
+        ## JG June 2026 -- changing rss_bytes to used_bytes here to make jobstats and Slurm agree 
+        ## (see issue: https://github.com/PrincetonUniversity/jobstats/issues/57)
+        # self.get_data('used_memory', "max_over_time(cgroup_memory_rss_bytes{cluster='%s',jobid='%s',step='',task=''}[%ds])")
+        self.get_data('used_memory', "max_over_time(cgroup_memory_used_bytes{cluster='%s',jobid='%s',step='',task=''}[%ds])")
         self.get_data('total_time', "max_over_time(cgroup_cpu_total_seconds{cluster='%s',jobid='%s',step='',task=''}[%ds])")
         self.get_data('cpus', "max_over_time(cgroup_cpus{cluster='%s',jobid='%s',step='',task=''}[%ds])")
 
