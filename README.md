@@ -73,18 +73,21 @@ $ jobstats 39798795
     scheduler to work more effectively for all users. For more info:
       https://researchcomputing.princeton.edu/support/knowledge-base/slurm
 
-  * For additional job metrics including metrics plotted against time:
+  * See the URL below for various job metrics plotted as a function of time:
       https://mydella.princeton.edu/pun/sys/jobstats/39798795
 ```
 
 ### News and Updates
 
-- 16 Nov 2025: The Jobstats team will be available at Supercomputing 2025 for any discussions (see contact below).
+- 2X Jul 2026: Jobstats presentation at PEARC 2026: "Getting the Most Out of Your GPUs: Automatic Cancellation of Low Efficiency
+Jobs, GPU Fractionalization, Detailed Metrics, and GPU Sharing"
+- 23 Apr 2026: Presentation on Jobstats at NCAR ([see slides](https://researchcomputing.princeton.edu/document/6811))
+- 16 Nov 2025: The Jobstats team will be available at Supercomputing 2025 for any discussions (see contact below)
+- 28 Sep 2025: Subscribe to the [Jobstats mailing list](https://lists.princeton.edu/cgi-bin/wa?SUBED1=JOBSTATS&A=1)
+- 27 Aug 2025: Job summary statistics can now be stored in a MariaDB database instead of Slurm DB (contribution by [Anish Chanda](https://github.com/Anish-Chanda) of Iowa State Univ.)
+- 26 Jul 2025: [Open OnDemand helper app](https://princetonuniversity.github.io/jobstats/setup/ood/) now supports direct routing to Grafana dashboard for a given job
 - 24 Jul 2025: Jobstats wins "Best Poster Award" at [PEARC 2025](https://pearc.acm.org/proceedings-awards/)
-- 08 Jul 2025: Concise Grafana URLs will soon be available via the Open OnDemand helper app
-- 06 Jul 2025: Jobstats will be presented at [CaRCC](https://carcc.org) on 7/10 at 1 PM and at [PEARC25](https://pearc.acm.org/pearc25/) on 7/23 at 5:30 PM ([see poster](https://researchcomputing.princeton.edu/document/6246))
 - 01 Jun 2025: [Job Defense Shield](https://princetonuniversity.github.io/job_defense_shield/) is available for sending email alerts, generating reports, and cancelling jobs with 0% GPU utilization
-- 15 Feb 2025: Error handling was added to deal with missing metrics in `AdminComment`
 
 ### Getting Started
 
@@ -92,6 +95,7 @@ Begin with [What is Jobstats?](https://princetonuniversity.github.io/jobstats/) 
 
 ### Users of the Jobstats Platform
 
+- American Museum of Natural History
 - Brown University - Center for Computation and Visualization
 - Clemson University - Research Computing and Data
 - Deakin University - Applied Artificial Intelligence Initiative
@@ -100,6 +104,7 @@ Begin with [What is Jobstats?](https://princetonuniversity.github.io/jobstats/) 
 - Harvard University - Research Computing
 - Johns Hopkins University - Advanced Research Computing
 - Iowa State University - High Performance Computing
+- Massachusetts Institute of Technology - Research Computing
 - Monash University - e-Research
 - Northwestern University - Research Computing and Data Services
 - NAVER LABS Europe
@@ -109,7 +114,11 @@ Begin with [What is Jobstats?](https://princetonuniversity.github.io/jobstats/) 
 - University of Queensland - Research Computing Centre
 - University of Virginia - Research Computing
 - Yale University - Center for Research Computing
-- and more
+- and many more
+
+### Join the Mailing List
+
+Subscribe to the [Jobstats mailing list](https://lists.princeton.edu/cgi-bin/wa?SUBED1=JOBSTATS&A=1) to receive updates and other news.
 
 ### Contact
 

@@ -109,6 +109,8 @@ class BaseFormatter(ABC):
         total = total.replace(".50T", ".5T")
         total = f"{total}B"
         if with_label:
+            if self.js.ncpus == "1":
+                return f'     CPU Memory: {total}'
             return f'     CPU Memory: {total} ({pc}{unit} per CPU-core)'
         else:
             return total
@@ -137,6 +139,8 @@ class BaseFormatter(ABC):
     def time_limit_formatted(self) -> str:
         self.js.time_eff_violation = False
         clr = self.txt_normal
+        if self.js.timelimitraw == "UNLIMITED":
+            return f"     Time Limit: {clr}UNLIMITED{self.txt_normal}"
         if self.js.state == "COMPLETED" and self.js.timelimitraw > 0:
             self.js.time_efficiency = round(100 * self.js.diff / (SECONDS_PER_MINUTE * self.js.timelimitraw))
             if self.js.time_efficiency > 100:
@@ -148,7 +152,7 @@ class BaseFormatter(ABC):
         hs = self.human_seconds(SECONDS_PER_MINUTE * self.js.timelimitraw)
         return f"     Time Limit: {clr}{hs}{self.txt_normal}"
 
-    def draw_meter(self, efficiency:int, hardware:str, util: bool=False) -> str:
+    def draw_meter(self, efficiency: int, hardware: str, util: bool=False) -> str:
         bars = efficiency // 2
         if bars < 0:
             bars = 0
@@ -161,8 +165,12 @@ class BaseFormatter(ABC):
             spaces = 0
         clr1 = ""
         clr2 = ""
+        CPU_MEM_UTIL_RED = c.CPU_MEM_UTIL_RED if hasattr(c, "CPU_MEM_UTIL_RED") else 0
+        GPU_MEM_UTIL_RED = c.GPU_MEM_UTIL_RED if hasattr(c, "GPU_MEM_UTIL_RED") else 0
         if (efficiency < c.CPU_UTIL_RED and hardware == "cpu" and util and (not self.js.gpus)) or \
-           (efficiency < c.GPU_UTIL_RED and hardware == "gpu" and util):
+           (efficiency < CPU_MEM_UTIL_RED and hardware == "cpumem" and util) or \
+           (efficiency < c.GPU_UTIL_RED and hardware == "gpu" and util) or \
+           (efficiency < GPU_MEM_UTIL_RED and hardware == "gpumem" and util):
             clr1 = f"{self.txt_red}"
             clr2 = f"{self.txt_bold}{self.txt_red}"
         return f"{self.txt_bold}[{self.txt_normal}" + clr1 + bars * "|" + spaces * " " + clr2 + \
@@ -209,42 +217,51 @@ class BaseFormatter(ABC):
     def job_notes(self):
         """Process the notes in config.py."""
         s = ""
-        # compute several quantities which can later be referenced in notes
+        # compute several quantities which can be referenced in the notes
         total_used, total, total_cores = self.js.cpu_mem_total__used_alloc_cores
         cores_per_node = int(self.js.ncpus) / int(self.js.nnodes)
         gb_per_core_used = total_used / total_cores / 1024**3 if total_cores != 0 else 0
+        gb_per_core_total = total / total_cores / 1024**3 if total_cores != 0 else 0
         gb_per_node_used = total_used / int(self.js.nnodes) / 1024**3 if int(self.js.nnodes) != 0 else 0
-        # zero GPU/CPU utilization
+        # zero GPU utilization
         ## HERE probably -- gpu_util__node_util_index
+        zero_gpu = False
         if self.js.gpus:
             num_unused_gpus = sum([util == 0 for _, util, _, _ in self.js.gpu_util__node_util_index])
+            if num_unused_gpus:
+                zero_gpu = True
         else:
             num_unused_gpus = 0
-        zero_gpu = False  # unused
-        zero_cpu = False  # unused
-        gpu_show = True   # unused
-        # interactive job
-        cond1 = bool("sys/dashboard/sys/" in self.js.jobname)
-        cond2 = bool(self.js.jobname == "interactive")
-        interactive_job = bool(cond1 or cond2)
+        cores_per_gpu = int(self.js.ncpus) / self.js.gpus if self.js.gpus else 0
+        cpu_mem_per_gpu = total / 1024**3 / self.js.gpus if self.js.gpus else 0
+        if self.js.gpus:
+            gpu_mem_used, gpu_mem_alloc = self.js.gpu_mem_total__used_alloc
+            gpu_mem_used = gpu_mem_used / 1024**3
+        multi = "" if self.js.gpus - num_unused_gpus > 1 else "Is the code capable of using multiple GPUs? "
+        gpu_show = False if self.js.gpus and cpu_mem_per_gpu < 50 else True
+        # zero CPU utilization
+        num_unused_nodes = sum([used == 0 for _, used, _, _ in self.js.cpu_util__node_used_alloc_cores])
+        zero_cpu = True if num_unused_nodes else False
+        multi_cpu = "" if int(self.js.nnodes) - num_unused_nodes > 1 else "Is the code capable of using multiple nodes? "
+        # interactive
+        interactive_job = (self.js.jobname == "interactive") or self.js.jobname.startswith("sys/dashboard/sys/")
         # low cpu utilization
         somewhat = " " if self.js.cpu_efficiency < c.CPU_UTIL_RED else " somewhat "
         ceff = self.js.cpu_efficiency if self.js.cpu_efficiency > 0 else "less than 1"
         # next three lines needed for serial code using multiple CPU-cores note
         eff_if_serial = 100 / int(self.js.ncpus) if self.js.ncpus != "0" else -1
         serial_ratio = self.js.cpu_efficiency / eff_if_serial
-        approx = " approximately " if self.js.cpu_efficiency != round(eff_if_serial) else " "
+        approx = " approximately " if self.js.cpu_efficiency != round(eff_if_serial, 1) else " "
         # next four lines needed for excess CPU memory note
-        gb_per_core = total / total_cores / 1024**3 if total_cores != 0 else 0
         if self.js.cpu_memory_efficiency >= 1:
             opening = f"only used {self.js.cpu_memory_efficiency}%"
         else:
             opening = "used less than 1%"
-        if self.js.cluster in c.CORES_PER_NODE:
+        if hasattr(c, "CORES_PER_NODE") and self.js.cluster in c.CORES_PER_NODE:
             cpn = c.CORES_PER_NODE[self.js.cluster]
         else:
             cpn = 0
-        if self.js.cluster in c.DEFAULT_MEM_PER_CORE:
+        if hasattr(c, "DEFAULT_MEM_PER_CORE") and self.js.cluster in c.DEFAULT_MEM_PER_CORE:
             mpc = c.DEFAULT_MEM_PER_CORE[self.js.cluster]
         else:
             mpc = 0
@@ -300,8 +317,8 @@ class ClassicOutput(BaseFormatter):
         """Return the overall CPU utilization."""
         if self.js.cpu_util_error_code == 0:
             total_used, total, _ = self.js.cpu_util_total__used_alloc_cores
-            self.js.cpu_efficiency = round(100 * total_used / total)
-            meter = self.draw_meter(self.js.cpu_efficiency, "cpu", util=True)
+            self.js.cpu_efficiency = round(100 * total_used / total, 1)
+            meter = self.draw_meter(int(self.js.cpu_efficiency), "cpu", util=True)
             cpu_util = f"  CPU utilization  {meter}\n"
         elif self.js.cpu_util_error_code == 1:
             cpu_util = "  CPU utilization  (JSON is malformed)\n"
@@ -318,7 +335,7 @@ class ClassicOutput(BaseFormatter):
         if self.js.cpu_mem_error_code == 0:
             total_used, total, _ = self.js.cpu_mem_total__used_alloc_cores
             self.js.cpu_memory_efficiency = round(100 * total_used / total)
-            meter = self.draw_meter(self.js.cpu_memory_efficiency, "cpu")
+            meter = self.draw_meter(self.js.cpu_memory_efficiency, "cpumem", util=True)
             cpu_mem = f"  CPU memory usage {meter}\n"
         elif self.js.cpu_mem_error_code == 1:
             cpu_mem = "  CPU memory usage (JSON is malformed)\n"
@@ -333,22 +350,36 @@ class ClassicOutput(BaseFormatter):
     def output_overall_gpu_util(self) -> str:
         """Return the overall GPU utilization."""
         if self.js.gpu_util_error_code == 0:
-            overall, overall_gpu_count = self.js.gpu_util_total__util_gpus
-            self.js.gpu_utilization = overall / overall_gpu_count
-            meter = self.draw_meter(round(self.js.gpu_utilization), "gpu", util=True)
-            gpu_util = f"  GPU utilization  {meter}\n"
+            if self.js.is_mig_job():
+                # set utilization to 100 to avoid triggering low utilization notes
+                self.js.gpu_utilization = 100
+                gpu_util = f"  GPU utilization  {self.txt_bold}[{self.txt_normal}" \
+                           "     GPU utilization is unknown for MIG jobs      " \
+                           f"{self.txt_normal}{self.txt_bold}]{self.txt_normal}\n"
+            else:
+                overall, overall_gpu_count = self.js.gpu_util_total__util_gpus
+                if overall_gpu_count:
+                    self.js.gpu_utilization = overall / overall_gpu_count
+                    meter = self.draw_meter(round(self.js.gpu_utilization), "gpu", util=True)
+                    gpu_util = f"  GPU utilization  {meter}\n"
+                else:
+                    # set utilization to 100 to avoid triggering low utilization notes
+                    self.js.gpu_utilization = 100
+                    gpu_util = f"  GPU utilization  {self.txt_bold}[{self.txt_normal}" \
+                               "            GPU utilization is unknown            " \
+                               f"{self.txt_normal}{self.txt_bold}]{self.txt_normal}\n"
         elif self.js.gpu_util_error_code == 1:
             gpu_util = "  GPU utilization  (Value is unknown)\n"
         else:
             gpu_util = "  GPU utilization  (Something went wrong)\n"
-        return gpu_util 
+        return gpu_util
 
     def output_overall_gpu_memory_usage(self) -> str:
         """Return the overall GPU memory usage."""
         if self.js.gpu_mem_error_code == 0:
             overall, overall_total = self.js.gpu_mem_total__used_alloc
             gpu_memory_usage = round(100 * overall / overall_total)
-            meter = self.draw_meter(gpu_memory_usage, "gpu")
+            meter = self.draw_meter(gpu_memory_usage, "gpumem", util=True)
             gpu_mem = f"  GPU memory usage {meter}\n"
         elif self.js.gpu_mem_error_code == 1:
             gpu_mem = "  GPU memory usage (JSON is malformed)\n"
@@ -418,8 +449,11 @@ class ClassicOutput(BaseFormatter):
         for node, used, alloc, cores in self.js.cpu_mem__node_used_alloc_cores:
             hb_alloc = self.human_bytes(alloc).replace(".0GB", "GB")
             report += f"{gutter}    {node}: {self.human_bytes(used)}/{hb_alloc} "
-            hb_alloc = self.human_bytes(alloc / cores).replace(".0GB", "GB")
-            report += f"({self.human_bytes(used/cores)}/{hb_alloc} per core of {cores})\n"
+            if self.js.ncpus == "1":
+                report += "\n"
+            else:
+                hb_alloc = self.human_bytes(alloc / cores).replace(".0GB", "GB")
+                report += f"({self.human_bytes(used/cores)}/{hb_alloc} per core of {cores})\n"
         total_used, total, total_cores = self.js.cpu_mem_total__used_alloc_cores
         if self.js.nnodes != "1":
             report += f"{gutter}Total used/allocated: {self.human_bytes(total_used)}/{self.human_bytes(total)} "
@@ -433,20 +467,40 @@ class ClassicOutput(BaseFormatter):
                 for node, util_avg, _, gpu_index in self.js.gpu_util__node_util_index:
                     msg = ""
                     if util_avg == 0:
+                        util_avg = "0%"
                         msg = f" {self.txt_bold}{self.txt_red}<-- GPU was not used{self.txt_normal}"
-                    report += f"{gutter}    {node} (GPU {gpu_index}): {util_avg}%{msg}\n"
+                    elif util_avg is None:
+                        util_avg = ""
+                        if self.js.is_mig_job():
+                            msg = "Average GPU utilization is unknown for MIG jobs"
+                        else:
+                            msg = "Average GPU utilization is unknown"
+                    else:
+                        util_avg = f"{util_avg}%"
+                    report += f"{gutter}    {node} (GPU {gpu_index}): {util_avg}{msg}\n"
             else:
                  report += f"{gutter}    An error was encountered ({self.js.gpu_util_error_code})\n"
-            # GPU utilization max 
+            
+            # GPU utilization max
             report += f"\n{gutter}Maximum GPU utilization per node\n"
             if self.js.gpu_util_error_code == 0:
                 for node, _, util_max, gpu_index in self.js.gpu_util__node_util_index:
                     msg = ""
                     if util_max == 0:
+                        util_max = "0%"
                         msg = f" {self.txt_bold}{self.txt_red}<-- GPU was not used{self.txt_normal}"
-                    report += f"{gutter}    {node} (GPU {gpu_index}): {util_max}%{msg}\n"
+                    elif util_max is None:
+                        util_max = ""
+                        if self.js.is_mig_job():
+                            msg = "Maximum GPU utilization is unknown for MIG jobs"
+                        else:
+                            msg = "Maximum GPU utilization is unknown"
+                    else:
+                        util_max = f"{util_max}%"
+                    report += f"{gutter}    {node} (GPU {gpu_index}): {util_max}{msg}\n"
             else:
                  report += f"{gutter}    An error was encountered ({self.js.gpu_util_error_code})\n"
+            
             # GPU memory usage
             report += f"\n{gutter}GPU memory usage per node - maximum used/total\n"
             if self.js.gpu_mem_error_code == 0:
@@ -457,6 +511,18 @@ class ClassicOutput(BaseFormatter):
                     report += f"{gutter}    {node} (GPU {gpu_index}): {hs_used}/{hs_total} ({eff:.1f}%)\n"
             else:
                 report += f"{gutter}    An error was encountered ({self.js.gpu_mem_error_code})\n"
+        ########################################################################
+        #                             BATCH SCRIPT                             #
+        ########################################################################
+        if self.js.batch_script:
+            heading = f"{self.txt_bold}Batch Script{self.txt_normal}"
+            report += "\n" + heading.center(self.width) + "\n"
+            report += self.width * "=" + "\n"
+            lines = self.js.job_script.split("\n")
+            if lines[0].startswith("Batch Script for"):
+                report += "\n".join(lines[2:])
+            else:
+                report += self.js.job_script
         ########################################################################
         #                              JOB NOTES                               #
         ########################################################################
